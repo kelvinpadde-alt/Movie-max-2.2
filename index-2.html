@@ -1,0 +1,2312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movie Max — Trident Technologies</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<style>
+  :root {
+    --black: #0D0D0D;
+    --dark: #1A1A1A;
+    --darker: #111111;
+    --red: #FF2E63;
+    --red-dim: rgba(255,46,99,0.15);
+    --red-glow: rgba(255,46,99,0.5);
+    --blue: #08D9D6;
+    --blue-dim: rgba(8,217,214,0.12);
+    --blue-glow: rgba(8,217,214,0.45);
+    --white: #FFFFFF;
+    --grey: #888;
+    --card-bg: rgba(255,255,255,0.04);
+    --glass: rgba(13,13,13,0.75);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Exo 2', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--dark); }
+  ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 2px; }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; animation: fadeIn 0.4s ease; }
+  .screen.active { display: block; }
+
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes zoomIn { from { opacity:0; transform:scale(0.96); } to { opacity:1; transform:scale(1); } }
+  @keyframes glowPulse {
+    0%,100% { box-shadow: 0 0 16px var(--red-glow), 0 0 32px var(--red-glow); }
+    50% { box-shadow: 0 0 28px var(--red-glow), 0 0 56px var(--red-glow), 0 0 80px rgba(255,46,99,0.2); }
+  }
+  @keyframes bluePulse {
+    0%,100% { box-shadow: 0 0 16px var(--blue-glow), 0 0 32px var(--blue-glow); }
+    50% { box-shadow: 0 0 28px var(--blue-glow), 0 0 56px var(--blue-glow), 0 0 80px rgba(8,217,214,0.2); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes scanline {
+    0% { top: -10%; }
+    100% { top: 110%; }
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+  }
+  @keyframes particleDrift {
+    0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-20vh) translateX(60px); opacity: 0; }
+  }
+  @keyframes logoReveal {
+    0% { opacity:0; transform: scale(0.5) translateY(-30px); filter: blur(20px); }
+    60% { opacity:1; transform: scale(1.08) translateY(0); filter: blur(0); }
+    100% { opacity:1; transform: scale(1) translateY(0); }
+  }
+  @keyframes slideUp {
+    from { opacity:0; transform:translateY(40px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+  @keyframes inputGlow {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,46,99,0); }
+    50% { box-shadow: 0 0 20px rgba(255,46,99,0.3), 0 0 40px rgba(255,46,99,0.1); }
+  }
+  @keyframes tickerScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  @keyframes countdownPulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+
+  /* ─── TOP NAV ─── */
+  .topnav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px;
+    background: linear-gradient(to bottom, rgba(13,13,13,0.97) 0%, transparent 100%);
+    backdrop-filter: blur(8px);
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 3px;
+    background: linear-gradient(135deg, var(--red) 0%, #FF6B9D 50%, var(--blue) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 12px var(--red-glow));
+    cursor: pointer;
+  }
+  .logo span { color: var(--blue); -webkit-text-fill-color: var(--blue); filter: none; }
+  .topnav-right { display: flex; align-items: center; gap: 16px; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--red), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; cursor: pointer;
+    box-shadow: 0 0 12px var(--red-glow);
+    overflow: hidden;
+  }
+  .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .topnav-tag {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px; letter-spacing: 2px; color: var(--blue);
+    opacity: 0.7; text-transform: uppercase;
+  }
+
+  /* ─── HERO BANNER ─── */
+  .hero {
+    position: relative; height: 88vh; min-height: 500px;
+    display: flex; align-items: flex-end; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #0D0D0D 0%, #1a0510 30%, #050d1a 70%, #0D0D0D 100%);
+    overflow: hidden;
+  }
+  .hero-poster {
+    position: absolute; inset: 0;
+    background-image: url('https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_.jpg');
+    background-size: cover; background-position: center top;
+    opacity: 0.35; filter: blur(1px) saturate(1.4);
+    transform: scale(1.05); transition: transform 8s ease;
+  }
+  .hero:hover .hero-poster { transform: scale(1.08); }
+  .hero-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top,
+      rgba(13,13,13,1) 0%, rgba(13,13,13,0.8) 25%,
+      rgba(13,13,13,0.3) 60%, rgba(13,13,13,0.1) 100%);
+  }
+  .hero-overlay-sides {
+    position: absolute; inset: 0;
+    background: linear-gradient(to right, rgba(13,13,13,0.9) 0%, transparent 40%, transparent 60%, rgba(13,13,13,0.6) 100%);
+  }
+  .hero-scan {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(to right, transparent, rgba(8,217,214,0.3), transparent);
+    animation: scanline 6s linear infinite; pointer-events: none;
+  }
+  .hero-content {
+    position: relative; z-index: 2;
+    padding: 40px 40px 60px; max-width: 620px;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--red-dim); border: 1px solid var(--red);
+    color: var(--red); padding: 4px 12px; border-radius: 4px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 3px;
+    margin-bottom: 16px; box-shadow: 0 0 12px var(--red-dim);
+  }
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 8vw, 88px);
+    line-height: 0.95; letter-spacing: 2px;
+    text-shadow: 0 0 40px rgba(255,46,99,0.4), 0 4px 20px rgba(0,0,0,0.8);
+    margin-bottom: 16px;
+  }
+  .hero-title em { color: var(--blue); font-style: normal; }
+  .hero-meta {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 20px;
+    font-family: 'Rajdhani', sans-serif; font-size: 14px; color: var(--grey);
+  }
+  .hero-meta .rating { color: #FFD700; font-weight: 700; }
+  .hero-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--grey); }
+  .hero-desc {
+    font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.7);
+    margin-bottom: 28px; font-weight: 300; max-width: 480px;
+  }
+  .hero-buttons { display: flex; gap: 12px; align-items: center; }
+  .hero-top-10 {
+    position: absolute; right: 24px; bottom: 60px; z-index: 3;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .top10-badge {
+    font-family: 'Bebas Neue'; font-size: 56px; line-height: 1;
+    color: transparent; -webkit-text-stroke: 2px var(--red);
+    filter: drop-shadow(0 0 12px var(--red-glow));
+  }
+  .top10-text { font-family: 'Rajdhani'; font-size: 11px; letter-spacing: 2px; color: var(--grey); }
+
+  /* ─── BUTTONS ─── */
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: linear-gradient(135deg, var(--red) 0%, #c5003f 100%);
+    color: var(--white); border: none; border-radius: 8px;
+    padding: 14px 28px; font-family: 'Rajdhani', sans-serif;
+    font-size: 16px; font-weight: 700; letter-spacing: 2px;
+    cursor: pointer; text-transform: uppercase;
+    box-shadow: 0 0 20px var(--red-glow), 0 4px 20px rgba(0,0,0,0.5);
+    animation: glowPulse 2.5s ease infinite;
+    transition: transform 0.2s, filter 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .btn-primary::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    background-size: 200% 100%; animation: shimmer 2s linear infinite;
+  }
+  .btn-primary:hover { transform: translateY(-2px) scale(1.03); filter: brightness(1.15); }
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(8,217,214,0.4);
+    color: var(--white); border-radius: 8px;
+    padding: 14px 24px; font-family: 'Rajdhani', sans-serif;
+    font-size: 15px; font-weight: 600; letter-spacing: 1px;
+    cursor: pointer; text-transform: uppercase;
+    backdrop-filter: blur(8px); box-shadow: 0 0 12px var(--blue-dim);
+    transition: all 0.25s;
+  }
+  .btn-secondary:hover {
+    background: rgba(8,217,214,0.12); box-shadow: 0 0 20px var(--blue-glow);
+    border-color: var(--blue); transform: translateY(-2px);
+  }
+
+  /* ─── TICKER ─── */
+  .ticker-wrap {
+    overflow: hidden; background: rgba(255,46,99,0.06);
+    border-top: 1px solid rgba(255,46,99,0.15);
+    border-bottom: 1px solid rgba(255,46,99,0.15);
+    padding: 8px 0; margin-bottom: 4px;
+  }
+  .ticker {
+    display: flex; gap: 0; white-space: nowrap;
+    animation: tickerScroll 28s linear infinite;
+  }
+  .ticker-item {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 0 32px;
+    font-family: 'Rajdhani'; font-size: 13px; font-weight: 600;
+    color: var(--grey); letter-spacing: 1px;
+  }
+  .ticker-item .dot { color: var(--red); }
+  .ticker-item strong { color: var(--white); }
+
+  /* ─── SECTIONS ─── */
+  .section { padding: 8px 24px 24px; }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  .section-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--white);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::before {
+    content: ''; width: 4px; height: 20px; border-radius: 2px;
+    background: linear-gradient(to bottom, var(--red), var(--blue));
+    box-shadow: 0 0 8px var(--red-glow);
+  }
+  .see-all {
+    font-family: 'Rajdhani', sans-serif; font-size: 13px;
+    color: var(--blue); letter-spacing: 1px; cursor: pointer;
+    text-transform: uppercase; border: none; background: none;
+    transition: all 0.2s;
+  }
+  .see-all:hover { text-shadow: 0 0 8px var(--blue-glow); }
+
+  /* ─── MOVIE CARDS ROW ─── */
+  .cards-row {
+    display: flex; gap: 14px; overflow-x: auto;
+    padding-bottom: 12px; scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  .cards-row::-webkit-scrollbar { display: none; }
+
+  .movie-card {
+    flex: 0 0 160px; border-radius: 12px;
+    overflow: hidden; position: relative;
+    cursor: pointer; scroll-snap-align: start;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s;
+    background: var(--dark);
+    animation: zoomIn 0.4s ease backwards;
+  }
+  .movie-card:hover {
+    transform: translateY(-8px) scale(1.04);
+    box-shadow: 0 12px 40px rgba(255,46,99,0.35), 0 0 0 1px rgba(255,46,99,0.4);
+    z-index: 10;
+  }
+  .movie-card-img {
+    width: 100%; aspect-ratio: 2/3; object-fit: cover;
+    display: block; transition: filter 0.3s;
+  }
+  .movie-card:hover .movie-card-img { filter: brightness(1.1) saturate(1.2); }
+  .movie-card-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(13,13,13,0.95) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.3s;
+    display: flex; flex-direction: column;
+    justify-content: flex-end; padding: 12px;
+  }
+  .movie-card:hover .movie-card-overlay { opacity: 1; }
+  .card-play {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--red); display: flex; align-items: center; justify-content: center;
+    margin-bottom: 8px; box-shadow: 0 0 16px var(--red-glow);
+  }
+  .card-play i { font-size: 14px; margin-left: 2px; }
+  .card-title-hover {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.5px; line-height: 1.3;
+  }
+  .rating-badge {
+    position: absolute; top: 8px; right: 8px;
+    background: rgba(13,13,13,0.85); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 6px; padding: 2px 7px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px; font-weight: 700; color: #FFD700;
+    display: flex; align-items: center; gap: 3px;
+  }
+  .rating-badge i { font-size: 9px; }
+  .card-info { padding: 10px 10px 12px; background: var(--dark); }
+  .card-name {
+    font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-year { font-size: 11px; color: var(--grey); margin-top: 2px; }
+
+  /* Top 10 number cards */
+  .top10-card {
+    flex: 0 0 130px; position: relative; cursor: pointer;
+    transition: transform 0.3s; scroll-snap-align: start;
+  }
+  .top10-card:hover { transform: translateY(-6px); z-index: 10; }
+  .top10-card img {
+    width: 100%; aspect-ratio: 2/3; object-fit: cover;
+    border-radius: 8px 8px 0 0;
+  }
+  .top10-num {
+    position: absolute; left: -10px; bottom: 28px;
+    font-family: 'Bebas Neue'; font-size: 80px; line-height: 1;
+    color: transparent; -webkit-text-stroke: 2px rgba(255,255,255,0.9);
+    text-shadow: 0 0 24px rgba(0,0,0,0.8);
+    filter: drop-shadow(2px 2px 8px rgba(0,0,0,0.9));
+  }
+  .top10-card-info { background: var(--dark); padding: 6px 8px 10px; border-radius: 0 0 8px 8px; }
+  .top10-card-name { font-family: 'Rajdhani'; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ─── FEATURED WIDE CARD ─── */
+  .wide-card {
+    flex: 0 0 280px; border-radius: 12px; overflow: hidden;
+    position: relative; cursor: pointer; background: var(--dark);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .wide-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px var(--blue-dim), 0 0 0 1px rgba(8,217,214,0.3);
+  }
+  .wide-card-img { width: 100%; height: 160px; object-fit: cover; }
+  .wide-card-content { padding: 14px; }
+  .wide-card-title { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 700; }
+  .wide-card-sub { font-size: 12px; color: var(--grey); margin-top: 4px; }
+  .wide-card-badge {
+    display: inline-block; padding: 3px 8px; border-radius: 4px;
+    font-size: 11px; font-family: 'Rajdhani'; font-weight: 700; letter-spacing: 1px; margin-top: 8px;
+  }
+  .badge-red { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,46,99,0.3); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(8,217,214,0.3); }
+
+  /* ─── UPCOMING CALENDAR CARD ─── */
+  .upcoming-card {
+    flex: 0 0 160px; border-radius: 12px; overflow: hidden;
+    cursor: pointer; background: var(--dark);
+    transition: transform 0.3s, box-shadow 0.3s;
+    scroll-snap-align: start; position: relative;
+  }
+  .upcoming-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(8,217,214,0.2); }
+  .upcoming-card-img { width: 100%; height: 100px; object-fit: cover; display: block; }
+  .upcoming-date-badge {
+    position: absolute; top: 8px; left: 8px;
+    background: rgba(13,13,13,0.9); backdrop-filter: blur(4px);
+    border: 1px solid rgba(8,217,214,0.4); border-radius: 6px;
+    padding: 3px 8px; font-family: 'Rajdhani'; font-size: 11px;
+    color: var(--blue); font-weight: 700; letter-spacing: 1px;
+  }
+  .upcoming-booked {
+    position: absolute; top: 8px; right: 8px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--red); box-shadow: 0 0 6px var(--red-glow);
+    animation: countdownPulse 1.5s ease infinite;
+  }
+  .upcoming-card-info { padding: 10px; }
+  .upcoming-card-title { font-family: 'Rajdhani'; font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+  .upcoming-card-sub { font-size: 10px; color: var(--grey); }
+  .upcoming-card-booked { font-size: 10px; color: var(--red); margin-top: 3px; font-family: 'Rajdhani'; }
+
+  /* ─── BOTTOM NAV ─── */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center;
+    background: rgba(13,13,13,0.95); backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.06); padding: 10px 0 14px;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; padding: 6px; transition: all 0.2s; position: relative;
+  }
+  .nav-item i { font-size: 20px; color: var(--grey); transition: all 0.25s; }
+  .nav-item span {
+    font-family: 'Rajdhani', sans-serif; font-size: 10px; letter-spacing: 1px;
+    color: var(--grey); text-transform: uppercase; transition: all 0.25s;
+  }
+  .nav-item.active i { color: var(--red); filter: drop-shadow(0 0 6px var(--red)); }
+  .nav-item.active span { color: var(--red); }
+  .nav-item.active::before {
+    content: ''; position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+    width: 40px; height: 2px; background: var(--red);
+    box-shadow: 0 0 10px var(--red-glow); border-radius: 0 0 4px 4px;
+  }
+  .nav-item:hover i { color: var(--white); }
+
+  /* ─── SEARCH SCREEN ─── */
+  .search-screen-content { padding: 100px 24px 24px; }
+  .search-bar-wrap { position: relative; margin-bottom: 28px; }
+  .search-bar-wrap i {
+    position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+    color: var(--blue); font-size: 16px; filter: drop-shadow(0 0 6px var(--blue-glow));
+  }
+  .search-input {
+    width: 100%; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(8,217,214,0.35); border-radius: 12px;
+    padding: 16px 20px 16px 50px; color: var(--white);
+    font-family: 'Exo 2', sans-serif; font-size: 16px; outline: none; transition: all 0.3s;
+  }
+  .search-input::placeholder { color: rgba(255,255,255,0.3); }
+  .search-input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 20px var(--blue-dim), 0 0 40px rgba(8,217,214,0.1);
+    background: rgba(8,217,214,0.04);
+  }
+  .search-categories {
+    display: flex; gap: 8px; margin-bottom: 24px; overflow-x: auto;
+    padding-bottom: 4px; scrollbar-width: none;
+  }
+  .search-categories::-webkit-scrollbar { display: none; }
+  .cat-tag {
+    flex: 0 0 auto; padding: 7px 16px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+    font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--grey); cursor: pointer; letter-spacing: 1px; transition: all 0.2s; white-space: nowrap;
+  }
+  .cat-tag.active, .cat-tag:hover {
+    background: var(--red-dim); border-color: var(--red);
+    color: var(--red); box-shadow: 0 0 10px var(--red-dim);
+  }
+  .search-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .search-card {
+    border-radius: 10px; overflow: hidden; position: relative;
+    cursor: pointer; background: var(--dark);
+    transition: transform 0.25s, box-shadow 0.25s;
+    animation: zoomIn 0.3s ease backwards;
+  }
+  .search-card:hover { transform: scale(1.04); box-shadow: 0 8px 24px rgba(255,46,99,0.3); }
+  .search-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
+  .search-card-info {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(13,13,13,0.95), transparent);
+    padding: 20px 8px 8px;
+  }
+  .search-card-name { font-family: 'Rajdhani'; font-size: 12px; font-weight: 700; }
+  .search-rating { font-size: 11px; color: #FFD700; margin-top: 2px; }
+  .search-empty {
+    text-align: center; padding: 60px 20px; color: var(--grey);
+    display: none;
+  }
+  .search-empty i { font-size: 40px; opacity: 0.2; display: block; margin-bottom: 16px; }
+  .search-empty p { font-family: 'Rajdhani'; font-size: 16px; letter-spacing: 1px; }
+
+  /* ─── DETAIL SCREEN ─── */
+  .detail-hero { position: relative; height: 55vw; max-height: 340px; overflow: hidden; }
+  .detail-bg {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    filter: blur(2px) saturate(1.3); transform: scale(1.08);
+  }
+  .detail-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(13,13,13,1) 0%, rgba(13,13,13,0.4) 60%, rgba(13,13,13,0.2) 100%);
+  }
+  .detail-back {
+    position: absolute; top: 60px; left: 20px; z-index: 5;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(13,13,13,0.7); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .detail-back:hover { background: var(--red-dim); border-color: var(--red); }
+  .detail-poster-wrap {
+    position: absolute; bottom: -40px; left: 24px; z-index: 5;
+  }
+  .detail-poster-wrap img {
+    width: 100px; border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1);
+  }
+  .detail-content { padding: 52px 24px 16px 140px; }
+  .detail-title {
+    font-family: 'Bebas Neue'; font-size: 30px; letter-spacing: 2px; margin-bottom: 10px;
+  }
+  .detail-meta2 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .detail-rating-big {
+    display: flex; align-items: center; gap: 4px;
+    color: #FFD700; font-family: 'Rajdhani'; font-weight: 700; font-size: 15px;
+  }
+  .detail-tag {
+    background: var(--red-dim); border: 1px solid rgba(255,46,99,0.3);
+    color: var(--red); padding: 2px 10px; border-radius: 4px;
+    font-family: 'Rajdhani'; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  }
+  .detail-info-strip { font-family: 'Rajdhani'; font-size: 13px; color: var(--grey); }
+  .detail-desc-section { padding: 0 24px 24px; }
+  .detail-desc { font-size: 14px; line-height: 1.75; color: rgba(255,255,255,0.7); font-weight: 300; margin-bottom: 24px; }
+  .detail-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .detail-credits { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.06); }
+  .credits-title { font-family: 'Rajdhani'; font-size: 13px; letter-spacing: 2px; color: var(--grey); text-transform: uppercase; margin-bottom: 12px; }
+  .cast-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; }
+  .cast-item { flex: 0 0 70px; text-align: center; }
+  .cast-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255,46,99,0.2), rgba(8,217,214,0.2));
+    border: 2px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue'; font-size: 20px; color: rgba(255,255,255,0.5);
+    margin: 0 auto 6px;
+  }
+  .cast-name { font-size: 10px; color: var(--grey); font-family: 'Rajdhani'; }
+
+  /* ─── DOWNLOADS SCREEN ─── */
+  .downloads-content { padding: 96px 24px 24px; }
+  .downloads-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .page-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 3px;
+    background: linear-gradient(135deg, var(--white), rgba(255,255,255,0.6));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .storage-badge {
+    background: var(--blue-dim); border: 1px solid rgba(8,217,214,0.3);
+    color: var(--blue); padding: 6px 14px; border-radius: 20px;
+    font-family: 'Rajdhani'; font-size: 13px; font-weight: 600;
+  }
+  .dl-tabs { display: flex; gap: 0; margin-bottom: 20px; border-radius: 10px; overflow: hidden; background: rgba(255,255,255,0.04); }
+  .dl-tab {
+    flex: 1; padding: 10px; text-align: center;
+    font-family: 'Rajdhani'; font-size: 13px; font-weight: 600; letter-spacing: 1px;
+    color: var(--grey); cursor: pointer; transition: all 0.25s;
+  }
+  .dl-tab.active { background: var(--red-dim); color: var(--red); }
+  .storage-bar-wrap { margin-bottom: 28px; }
+  .storage-label { display: flex; justify-content: space-between; font-family: 'Rajdhani'; font-size: 13px; color: var(--grey); margin-bottom: 8px; }
+  .storage-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; }
+  .storage-fill { height: 100%; background: linear-gradient(to right, var(--red), var(--blue)); border-radius: 4px; width: 35%; box-shadow: 0 0 8px var(--blue-glow); }
+  .dl-list { display: flex; flex-direction: column; gap: 14px; }
+  .dl-item {
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px; padding: 14px; transition: all 0.25s; cursor: pointer;
+  }
+  .dl-item:hover { background: rgba(255,46,99,0.05); border-color: rgba(255,46,99,0.2); }
+  .dl-thumb { width: 64px; height: 90px; border-radius: 8px; object-fit: cover; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+  .dl-info { flex: 1; min-width: 0; }
+  .dl-title { font-family: 'Rajdhani'; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .dl-meta { font-size: 12px; color: var(--grey); margin-bottom: 8px; }
+  .dl-progress { height: 3px; background: rgba(255,255,255,0.08); border-radius: 4px; }
+  .dl-progress-fill { height: 100%; border-radius: 4px; }
+  .dl-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .dl-size { font-family: 'Rajdhani'; font-size: 13px; color: var(--grey); }
+  .dl-play { width: 36px; height: 36px; border-radius: 50%; background: var(--red); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 12px var(--red-glow); flex-shrink: 0; }
+  .find-sources-btn {
+    width: 100%; padding: 14px; border-radius: 10px; margin-top: 16px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    color: var(--blue); font-family: 'Rajdhani'; font-size: 14px; font-weight: 700;
+    letter-spacing: 2px; cursor: pointer; text-align: center; transition: all 0.25s;
+  }
+  .find-sources-btn:hover { background: var(--blue-dim); border-color: var(--blue); }
+
+  /* ─── PROFILE SCREEN ─── */
+  .profile-content { padding: 80px 24px 24px; }
+  .profile-banner {
+    position: relative; margin: 0 -24px 0; height: 120px; overflow: hidden;
+    background: linear-gradient(135deg, #1a0510, #050d1a);
+  }
+  .profile-banner-gfx {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(255,46,99,0.25) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 50%, rgba(8,217,214,0.15) 0%, transparent 60%);
+  }
+  .profile-hero { text-align: center; padding: 0 20px 32px; margin-top: -50px; position: relative; z-index: 2; }
+  .profile-avatar-big {
+    width: 100px; height: 100px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--red), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue'; font-size: 42px; color: var(--white);
+    margin: 0 auto 16px; border: 3px solid var(--black);
+    box-shadow: 0 0 30px var(--red-glow), 0 0 60px rgba(255,46,99,0.2);
+    position: relative; overflow: hidden;
+  }
+  .profile-avatar-big img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .profile-avatar-big::after {
+    content: ''; position: absolute; inset: -4px; border-radius: 50%;
+    border: 2px solid transparent;
+    background: linear-gradient(135deg, var(--red), var(--blue)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out; mask-composite: exclude;
+    animation: glowPulse 3s ease infinite;
+  }
+  .profile-name { font-family: 'Bebas Neue'; font-size: 28px; letter-spacing: 2px; margin-bottom: 4px; }
+  .profile-id { font-size: 12px; color: var(--grey); font-family: 'Rajdhani'; margin-bottom: 4px; }
+  .profile-sub { font-size: 13px; color: var(--grey); font-family: 'Rajdhani'; }
+  .profile-plan {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--red-dim); border: 1px solid rgba(255,46,99,0.4);
+    padding: 5px 16px; border-radius: 20px;
+    font-family: 'Rajdhani'; font-size: 13px; font-weight: 700; color: var(--red);
+    margin-top: 12px; letter-spacing: 1px; cursor: pointer; transition: all 0.25s;
+  }
+  .profile-plan:hover { background: var(--red); color: var(--white); }
+  .profile-premium-banner {
+    background: linear-gradient(135deg, rgba(255,46,99,0.1), rgba(8,217,214,0.08));
+    border: 1px solid rgba(255,46,99,0.2); border-radius: 14px;
+    padding: 16px 20px; margin-bottom: 20px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .premium-icon { font-size: 28px; filter: drop-shadow(0 0 8px var(--red-glow)); }
+  .premium-text { flex: 1; }
+  .premium-text strong { font-family: 'Rajdhani'; font-size: 16px; font-weight: 700; display: block; margin-bottom: 2px; }
+  .premium-text span { font-size: 12px; color: var(--grey); }
+  .premium-arrow { color: var(--blue); }
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px; }
+  .stat-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 16px; text-align: center; }
+  .stat-num {
+    font-family: 'Bebas Neue'; font-size: 32px; letter-spacing: 1px;
+    background: linear-gradient(135deg, var(--red), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .stat-label { font-family: 'Rajdhani'; font-size: 11px; color: var(--grey); letter-spacing: 1px; }
+  .watch-history-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 20px; scrollbar-width: none; }
+  .watch-history-row::-webkit-scrollbar { display: none; }
+  .history-thumb { flex: 0 0 80px; position: relative; cursor: pointer; }
+  .history-thumb img { width: 80px; height: 56px; object-fit: cover; border-radius: 8px; border: 2px solid transparent; transition: border-color 0.2s; }
+  .history-thumb:hover img { border-color: var(--red); }
+  .history-thumb-name { font-family: 'Rajdhani'; font-size: 10px; color: var(--grey); text-align: center; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .history-bar { position: absolute; bottom: 18px; left: 2px; right: 2px; height: 2px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+  .history-bar-fill { height: 100%; background: var(--red); border-radius: 2px; }
+  .profile-menu { display: flex; flex-direction: column; gap: 2px; }
+  .menu-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 16px 18px; border-radius: 10px; cursor: pointer; transition: all 0.2s; position: relative;
+  }
+  .menu-item:hover { background: rgba(255,255,255,0.04); }
+  .menu-item .mi-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .mi-red { background: var(--red-dim); color: var(--red); }
+  .mi-blue { background: var(--blue-dim); color: var(--blue); }
+  .mi-grey { background: rgba(255,255,255,0.05); color: var(--grey); }
+  .menu-item .mi-label { flex: 1; font-family: 'Rajdhani'; font-size: 15px; font-weight: 600; }
+  .menu-item .mi-sub { font-size: 11px; color: var(--grey); }
+  .menu-item .mi-badge { background: var(--blue); color: var(--black); font-family: 'Rajdhani'; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+  .menu-item i.fa-chevron-right { color: var(--grey); font-size: 12px; }
+  .branding-footer {
+    text-align: center; padding: 28px 16px 12px;
+    font-family: 'Rajdhani'; font-size: 12px; color: rgba(255,255,255,0.2);
+    letter-spacing: 2px; text-transform: uppercase;
+    border-top: 1px solid rgba(255,255,255,0.05); margin-top: 24px;
+  }
+  .branding-footer span { color: var(--blue); }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed; top: 80px; right: 20px; z-index: 999;
+    background: rgba(13,13,13,0.95); backdrop-filter: blur(16px);
+    border: 1px solid rgba(8,217,214,0.4); border-radius: 10px; padding: 12px 20px;
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'Rajdhani'; font-size: 14px; font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6), 0 0 20px var(--blue-dim);
+    opacity: 0; transform: translateX(40px);
+    transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(0); }
+  .toast i { color: var(--blue); }
+
+  /* ─── LIGHT THEME ─── */
+  body.light-mode {
+    --black: #F4F4F8;
+    --dark: #FFFFFF;
+    --darker: #E8E8EF;
+    --white: #0D0D0D;
+    --grey: #555;
+    --card-bg: rgba(0,0,0,0.04);
+    --glass: rgba(244,244,248,0.92);
+  }
+  body.light-mode { background: var(--black); color: var(--white); }
+  body.light-mode .topnav { background: linear-gradient(to bottom, rgba(244,244,248,0.97) 0%, transparent 100%); }
+  body.light-mode .bottom-nav { background: rgba(244,244,248,0.97); border-top: 1px solid rgba(0,0,0,0.1); }
+  body.light-mode .movie-card { background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.1); }
+  body.light-mode .card-info { background: #fff; }
+  body.light-mode .card-name { color: #111; }
+  body.light-mode .card-year { color: #777; }
+  body.light-mode .section-title { color: #111; }
+  body.light-mode .toast { background: rgba(255,255,255,0.97); color: #111; }
+  body.light-mode .search-input { background: rgba(0,0,0,0.05); color: #111; border-color: rgba(8,217,214,0.5); }
+  body.light-mode .search-input::placeholder { color: rgba(0,0,0,0.35); }
+  body.light-mode .wide-card { background: #fff; }
+  body.light-mode .upcoming-card { background: #fff; }
+  body.light-mode .dl-item { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.08); }
+  body.light-mode .profile-content { background: var(--black); }
+  body.light-mode .stat-card { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
+  body.light-mode .menu-item:hover { background: rgba(0,0,0,0.04); }
+  body.light-mode body::before { background-image: linear-gradient(rgba(255,46,99,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,46,99,0.04) 1px, transparent 1px); }
+  body.light-mode .top10-card-info { background: #fff; }
+  body.light-mode .ticker-wrap { background: rgba(255,46,99,0.04); }
+  body.light-mode .settings-panel, body.light-mode .accsettings-panel { background: #F4F4F8; }
+  body.light-mode .settings-item { border-bottom-color: rgba(0,0,0,0.07); }
+  body.light-mode .settings-item-label { color: #111; }
+  body.light-mode .settings-item-sub { color: #777; }
+
+  /* ─── FLOATING TRENDING TAGS ─── */
+  @keyframes floatTag1 {
+    0%   { transform: translateY(0px) translateX(0px); }
+    25%  { transform: translateY(-14px) translateX(6px); }
+    50%  { transform: translateY(-8px) translateX(12px); }
+    75%  { transform: translateY(-18px) translateX(4px); }
+    100% { transform: translateY(0px) translateX(0px); }
+  }
+  @keyframes floatTag2 {
+    0%   { transform: translateY(0px) translateX(0px); }
+    33%  { transform: translateY(-20px) translateX(-8px); }
+    66%  { transform: translateY(-10px) translateX(-4px); }
+    100% { transform: translateY(0px) translateX(0px); }
+  }
+  @keyframes floatTag3 {
+    0%   { transform: translateY(0px) translateX(0px); }
+    20%  { transform: translateY(-10px) translateX(10px); }
+    60%  { transform: translateY(-22px) translateX(5px); }
+    100% { transform: translateY(0px) translateX(0px); }
+  }
+  .trending-float-wrap {
+    position: relative; padding: 10px 24px 28px; overflow: hidden;
+    min-height: 110px; display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px;
+  }
+  .trending-tag {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 16px; border-radius: 8px;
+    font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700;
+    letter-spacing: 1px; cursor: pointer; white-space: nowrap;
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .trending-tag:hover { transform: translateY(-4px) scale(1.06) !important; }
+  .trending-tag.t-red {
+    background: rgba(255,46,99,0.12); border: 1px solid rgba(255,46,99,0.45);
+    color: var(--red); box-shadow: 0 4px 16px rgba(255,46,99,0.2);
+    animation: floatTag1 5s ease-in-out infinite;
+  }
+  .trending-tag.t-blue {
+    background: rgba(8,217,214,0.1); border: 1px solid rgba(8,217,214,0.4);
+    color: var(--blue); box-shadow: 0 4px 16px rgba(8,217,214,0.15);
+    animation: floatTag2 6.5s ease-in-out infinite;
+  }
+  .trending-tag.t-gold {
+    background: rgba(255,215,0,0.08); border: 1px solid rgba(255,215,0,0.4);
+    color: #FFD700; box-shadow: 0 4px 16px rgba(255,215,0,0.1);
+    animation: floatTag3 4.8s ease-in-out infinite;
+  }
+  .trending-tag.t-purple {
+    background: rgba(155,89,182,0.1); border: 1px solid rgba(155,89,182,0.4);
+    color: #b388f5; box-shadow: 0 4px 16px rgba(155,89,182,0.15);
+    animation: floatTag1 7s ease-in-out infinite reverse;
+  }
+  .trending-tag i { font-size: 13px; }
+
+  /* ─── SETTINGS PANEL ─── */
+  .settings-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .settings-overlay.open { opacity: 1; pointer-events: all; }
+  .settings-panel {
+    position: fixed; right: -100%; top: 0; bottom: 0; z-index: 501;
+    width: min(360px, 92vw);
+    background: #141414; overflow-y: auto;
+    transition: right 0.38s cubic-bezier(0.34,1.2,0.64,1);
+    border-left: 1px solid rgba(255,255,255,0.07);
+    display: flex; flex-direction: column;
+  }
+  .settings-panel.open { right: 0; }
+  .accsettings-panel {
+    position: fixed; left: -100%; top: 0; bottom: 0; z-index: 501;
+    width: min(360px, 92vw);
+    background: #141414; overflow-y: auto;
+    transition: left 0.38s cubic-bezier(0.34,1.2,0.64,1);
+    border-right: 1px solid rgba(255,255,255,0.07);
+    display: flex; flex-direction: column;
+  }
+  .accsettings-panel.open { left: 0; }
+  .settings-head {
+    padding: 56px 24px 20px; display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    background: linear-gradient(to bottom, rgba(255,46,99,0.06), transparent);
+  }
+  .settings-head-icon {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    background: var(--red-dim); border: 1px solid rgba(255,46,99,0.3);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--red); font-size: 18px;
+  }
+  .settings-head-title { font-family: 'Bebas Neue'; font-size: 24px; letter-spacing: 2px; }
+  .settings-head-sub { font-family: 'Rajdhani'; font-size: 11px; color: var(--grey); letter-spacing: 1px; }
+  .settings-close {
+    margin-left: auto; width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.06); border: none; color: var(--grey);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 16px; transition: all 0.2s; flex-shrink: 0;
+  }
+  .settings-close:hover { background: rgba(255,46,99,0.15); color: var(--red); }
+  .settings-body { flex: 1; padding: 8px 0 32px; }
+  .settings-section-label {
+    font-family: 'Rajdhani'; font-size: 10px; font-weight: 700;
+    letter-spacing: 3px; color: var(--grey); text-transform: uppercase;
+    padding: 20px 24px 8px;
+  }
+  .settings-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 24px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer; transition: background 0.2s;
+  }
+  .settings-item:hover { background: rgba(255,255,255,0.03); }
+  .settings-item-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+  .si-red { background: var(--red-dim); color: var(--red); }
+  .si-blue { background: var(--blue-dim); color: var(--blue); }
+  .si-grey { background: rgba(255,255,255,0.05); color: var(--grey); }
+  .si-gold { background: rgba(255,215,0,0.1); color: #FFD700; }
+  .si-green { background: rgba(39,174,96,0.12); color: #2ecc71; }
+  .settings-item-text { flex: 1; }
+  .settings-item-label { font-family: 'Rajdhani'; font-size: 15px; font-weight: 600; }
+  .settings-item-sub { font-size: 11px; color: var(--grey); margin-top: 1px; }
+  .settings-item-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  /* Toggle switch */
+  .toggle-switch {
+    width: 44px; height: 24px; border-radius: 12px; position: relative;
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.12);
+    cursor: pointer; transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  .toggle-switch.on { background: var(--red); border-color: var(--red); }
+  .toggle-switch::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--white); transition: transform 0.3s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+  .toggle-switch.on::after { transform: translateX(20px); }
+  .settings-value {
+    font-family: 'Rajdhani'; font-size: 13px; color: var(--blue); font-weight: 600;
+  }
+  /* Theme toggle row */
+  .theme-toggle-row {
+    display: flex; margin: 16px 24px; border-radius: 12px; overflow: hidden;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  }
+  .theme-opt {
+    flex: 1; padding: 12px; text-align: center; cursor: pointer;
+    font-family: 'Rajdhani'; font-size: 13px; font-weight: 700; letter-spacing: 1px;
+    color: var(--grey); display: flex; align-items: center; justify-content: center; gap: 7px;
+    transition: all 0.25s;
+  }
+  .theme-opt.active {
+    background: linear-gradient(135deg, var(--red), #c5003f);
+    color: #fff; box-shadow: 0 0 14px var(--red-glow);
+  }
+
+  /* ─── GLASSMORPHISM ─── */
+  .glass-card { background: rgba(255,255,255,0.04); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: linear-gradient(rgba(255,46,99,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,46,99,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     SIGNUP SCREEN — DRAMATIC
+  ═══════════════════════════════════════════════════════════ */
+  #screen-signup {
+    position: fixed; inset: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  #screen-signup.active { display: flex; }
+
+  .signup-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 20% 20%, rgba(255,46,99,0.18) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(8,217,214,0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(139,0,35,0.08) 0%, transparent 70%),
+                #080808;
+  }
+
+  /* Cinematic film strip */
+  .signup-filmstrip {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; gap: 0; overflow: hidden; opacity: 0.07;
+  }
+  .filmstrip-col {
+    flex: 0 0 160px; display: flex; flex-direction: column; gap: 3px;
+    animation: particleDrift 20s linear infinite;
+  }
+  .filmstrip-col:nth-child(even) { animation-duration: 26s; animation-delay: -10s; }
+  .filmstrip-col:nth-child(3n) { animation-duration: 22s; animation-delay: -5s; }
+  .filmstrip-frame {
+    flex: 0 0 100px; border: 1px solid rgba(255,255,255,0.15);
+    background: linear-gradient(135deg, rgba(255,46,99,0.08), rgba(8,217,214,0.04));
+    border-radius: 2px;
+  }
+
+  /* Particles */
+  .signup-particle {
+    position: absolute; width: 2px; height: 2px; border-radius: 50%;
+    background: var(--red); pointer-events: none;
+    animation: particleDrift linear infinite;
+  }
+
+  /* Red beam */
+  .signup-beam {
+    position: absolute; top: 0; left: 50%; width: 1px;
+    height: 100%; transform: translateX(-50%);
+    background: linear-gradient(to bottom, transparent 0%, rgba(255,46,99,0.4) 30%, rgba(255,46,99,0.6) 50%, rgba(255,46,99,0.4) 70%, transparent 100%);
+    filter: blur(8px); opacity: 0.5;
+  }
+
+  .signup-card {
+    position: relative; z-index: 10; width: 100%; max-width: 420px;
+    background: rgba(10,10,10,0.88); backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,46,99,0.25); border-radius: 20px;
+    padding: 44px 36px 40px; margin: 16px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.03),
+                0 32px 80px rgba(0,0,0,0.9),
+                0 0 60px rgba(255,46,99,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+    animation: zoomIn 0.8s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .signup-logo {
+    font-family: 'Bebas Neue'; font-size: 42px; letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--red) 0%, #FF6B9D 50%, var(--blue) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    text-align: center; display: block; margin-bottom: 4px;
+    animation: logoReveal 1.2s cubic-bezier(0.34,1.56,0.64,1);
+    filter: drop-shadow(0 0 20px rgba(255,46,99,0.5));
+  }
+  .signup-tagline {
+    text-align: center; font-family: 'Rajdhani'; font-size: 11px; letter-spacing: 4px;
+    color: var(--grey); text-transform: uppercase; margin-bottom: 36px;
+    animation: slideUp 0.8s ease 0.3s both;
+  }
+  .signup-tabs {
+    display: flex; background: rgba(255,255,255,0.04); border-radius: 10px;
+    overflow: hidden; margin-bottom: 28px;
+    animation: slideUp 0.8s ease 0.4s both;
+  }
+  .signup-tab {
+    flex: 1; padding: 11px; text-align: center;
+    font-family: 'Rajdhani'; font-size: 14px; font-weight: 700; letter-spacing: 2px;
+    color: var(--grey); cursor: pointer; transition: all 0.3s;
+  }
+  .signup-tab.active {
+    background: linear-gradient(135deg, var(--red), #c5003f);
+    color: var(--white); box-shadow: 0 0 16px var(--red-glow);
+  }
+  .signup-form { display: flex; flex-direction: column; gap: 16px; animation: slideUp 0.8s ease 0.5s both; }
+  .input-group { position: relative; }
+  .input-group i {
+    position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+    color: var(--grey); font-size: 14px; transition: color 0.3s; pointer-events: none;
+  }
+  .signup-input {
+    width: 100%; background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+    padding: 15px 16px 15px 44px;
+    color: var(--white); font-family: 'Exo 2'; font-size: 15px; outline: none;
+    transition: all 0.3s;
+  }
+  .signup-input::placeholder { color: rgba(255,255,255,0.25); }
+  .signup-input:focus {
+    border-color: var(--red); background: rgba(255,46,99,0.04);
+    animation: inputGlow 2s ease infinite;
+  }
+  .signup-input:focus + i, .input-group:focus-within i { color: var(--red); }
+  /* fix: icon comes after input in DOM, use sibling trick differently */
+  .input-group:focus-within i { color: var(--red); }
+  .signup-btn {
+    width: 100%; padding: 16px; border: none; border-radius: 10px;
+    background: linear-gradient(135deg, var(--red) 0%, #c5003f 100%);
+    color: var(--white); font-family: 'Rajdhani'; font-size: 17px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase; cursor: pointer;
+    box-shadow: 0 0 24px var(--red-glow), 0 4px 20px rgba(0,0,0,0.5);
+    animation: glowPulse 2.5s ease infinite;
+    transition: transform 0.2s, filter 0.2s; position: relative; overflow: hidden;
+    margin-top: 4px;
+  }
+  .signup-btn::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    background-size: 200% 100%; animation: shimmer 2s linear infinite;
+  }
+  .signup-btn:hover { transform: translateY(-2px) scale(1.02); filter: brightness(1.15); }
+  .signup-divider {
+    display: flex; align-items: center; gap: 12px;
+    font-family: 'Rajdhani'; font-size: 12px; color: rgba(255,255,255,0.2); letter-spacing: 2px;
+  }
+  .signup-divider::before, .signup-divider::after {
+    content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08);
+  }
+  .social-btns { display: flex; gap: 10px; }
+  .social-btn {
+    flex: 1; padding: 13px 10px; border-radius: 10px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+    color: var(--grey); font-family: 'Rajdhani'; font-size: 14px; font-weight: 600;
+    cursor: pointer; text-align: center; transition: all 0.25s; letter-spacing: 1px;
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+  }
+  .social-btn i { font-size: 20px; }
+  .google-btn { border-color: rgba(234,67,53,0.35); }
+  .google-btn i { color: #EA4335; filter: drop-shadow(0 0 6px rgba(234,67,53,0.5)); }
+  .google-btn:hover { background: rgba(234,67,53,0.1); border-color: #EA4335; color: var(--white); }
+  .apple-btn { border-color: rgba(255,255,255,0.25); }
+  .apple-btn i { color: #f5f5f7; filter: drop-shadow(0 0 6px rgba(255,255,255,0.4)); }
+  .apple-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); color: var(--white); }
+  .signup-footer {
+    text-align: center; margin-top: 20px;
+    font-family: 'Rajdhani'; font-size: 12px; color: rgba(255,255,255,0.2); letter-spacing: 1px;
+    animation: slideUp 0.8s ease 0.6s both;
+  }
+  .signup-footer a { color: var(--blue); cursor: pointer; text-decoration: none; }
+  .signup-footer a:hover { text-shadow: 0 0 8px var(--blue-glow); }
+
+  /* Dramatic quote above card */
+  .signup-quote {
+    position: absolute; top: 24px; left: 0; right: 0;
+    text-align: center; z-index: 10;
+    font-family: 'Bebas Neue'; font-size: clamp(13px, 2.5vw, 18px);
+    letter-spacing: 4px; color: rgba(255,255,255,0.12);
+    pointer-events: none; text-transform: uppercase;
+  }
+  .forgot-link {
+    text-align: right; font-family: 'Rajdhani'; font-size: 12px;
+    color: var(--blue); cursor: pointer; letter-spacing: 1px;
+    margin-top: -8px;
+  }
+  .forgot-link:hover { text-shadow: 0 0 8px var(--blue-glow); }
+
+  /* Genre pills featured */
+  .genre-strip {
+    display: flex; gap: 8px; overflow-x: auto; padding: 12px 24px 0; scrollbar-width: none;
+  }
+  .genre-strip::-webkit-scrollbar { display: none; }
+  .genre-pill {
+    flex: 0 0 auto; padding: 6px 14px; border-radius: 20px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    font-family: 'Rajdhani'; font-size: 12px; font-weight: 600; color: var(--grey);
+    cursor: pointer; letter-spacing: 1px; transition: all 0.2s; white-space: nowrap;
+  }
+  .genre-pill.active, .genre-pill:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><i class="fa fa-check-circle"></i> <span id="toast-msg">Added to downloads!</span></div>
+
+<!-- ═══════════════════════════════ SIGNUP SCREEN ═══════════════════════════════ -->
+<div class="screen active" id="screen-signup">
+  <div class="signup-bg"></div>
+
+  <!-- Atmospheric film strip -->
+  <div class="signup-filmstrip" id="filmstrip"></div>
+  <div class="signup-beam"></div>
+
+  <!-- Floating particles -->
+  <div id="signup-particles"></div>
+
+  <div class="signup-quote">Unlimited Movies · Unlimited Worlds · Unlimited You</div>
+
+  <div class="signup-card">
+    <span class="signup-logo">Movie<span style="-webkit-text-fill-color:var(--blue);color:var(--blue)">Max</span></span>
+    <div class="signup-tagline">Trident Technologies · Stream Everything</div>
+
+    <div class="signup-tabs">
+      <div class="signup-tab active" id="tab-signup" onclick="switchAuthTab('signup')">SIGN UP</div>
+      <div class="signup-tab" id="tab-login" onclick="switchAuthTab('login')">LOG IN</div>
+    </div>
+
+    <!-- SIGN UP FORM -->
+    <div class="signup-form" id="form-signup">
+      <div class="input-group">
+        <input type="text" class="signup-input" placeholder="Full Name" id="su-name">
+        <i class="fa fa-user"></i>
+      </div>
+      <div class="input-group">
+        <input type="email" class="signup-input" placeholder="Email Address" id="su-email">
+        <i class="fa fa-envelope"></i>
+      </div>
+      <div class="input-group">
+        <input type="password" class="signup-input" placeholder="Create Password" id="su-pass">
+        <i class="fa fa-lock"></i>
+      </div>
+      <div class="input-group">
+        <input type="password" class="signup-input" placeholder="Confirm Password" id="su-pass2">
+        <i class="fa fa-shield-alt"></i>
+      </div>
+      <button class="signup-btn" onclick="handleSignup()">
+        <i class="fa fa-film" style="margin-right:8px"></i> START STREAMING
+      </button>
+      <div class="signup-divider">OR CONTINUE WITH</div>
+      <div class="social-btns">
+        <div class="social-btn google-btn" onclick="socialAuth('Google')"><i class="fab fa-google"></i> Google</div>
+        <div class="social-btn apple-btn" onclick="socialAuth('Apple')"><i class="fab fa-apple"></i> Apple</div>
+      </div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div class="signup-form" id="form-login" style="display:none">
+      <div class="input-group">
+        <input type="email" class="signup-input" placeholder="Email Address" id="li-email">
+        <i class="fa fa-envelope"></i>
+      </div>
+      <div class="input-group">
+        <input type="password" class="signup-input" placeholder="Password" id="li-pass">
+        <i class="fa fa-lock"></i>
+      </div>
+      <div class="forgot-link" onclick="showToast('Password reset link sent!','fa-envelope')">Forgot Password?</div>
+      <button class="signup-btn" onclick="handleLogin()">
+        <i class="fa fa-play" style="margin-right:8px"></i> ENTER MOVIE MAX
+      </button>
+      <div class="signup-divider">OR CONTINUE WITH</div>
+      <div class="social-btns">
+        <div class="social-btn google-btn" onclick="socialAuth('Google')"><i class="fab fa-google"></i> Google</div>
+        <div class="social-btn apple-btn" onclick="socialAuth('Apple')"><i class="fab fa-apple"></i> Apple</div>
+      </div>
+    </div>
+
+    <div class="signup-footer">
+      By continuing you agree to our <a>Terms</a> & <a>Privacy Policy</a>.<br>
+      © 2025 Movie Max · Trident Technologies
+    </div>
+  </div>
+</div>
+
+<!-- TOP NAV (hidden on signup) -->
+<nav class="topnav" id="topnav" style="display:none">
+  <div class="logo" onclick="showScreen('home')">Movie<span>Max</span></div>
+  <div class="topnav-right">
+    <span class="topnav-tag">TRIDENT TECH</span>
+    <div style="cursor:pointer;color:var(--grey);font-size:18px;transition:color 0.2s" onclick="openSettings()" title="App Settings"><i class="fa fa-cog"></i></div>
+    <div class="avatar" id="topnav-avatar" onclick="showScreen('profile')">
+      <span id="avatar-initials">U</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════ HOME SCREEN ═══════════════════════════════ -->
+<div class="screen" id="screen-home">
+
+  <!-- HERO -->
+  <div class="hero" onclick="openDetail(0)">
+    <div class="hero-bg">
+      <div class="hero-poster" id="hero-poster"></div>
+    </div>
+    <div class="hero-overlay"></div>
+    <div class="hero-overlay-sides"></div>
+    <div class="hero-scan"></div>
+    <div class="hero-content">
+      <div class="hero-badge"><i class="fa fa-fire"></i> TRENDING #1</div>
+      <h1 class="hero-title">DUNE:<em>Part Two</em></h1>
+      <div class="hero-meta">
+        <span class="rating"><i class="fa fa-star"></i> 8.5</span>
+        <span class="dot"></span>
+        <span>2024</span>
+        <span class="dot"></span>
+        <span>2h 46m</span>
+        <span class="dot"></span>
+        <span>Sci-Fi</span>
+      </div>
+      <p class="hero-desc">Paul Atreides unites with the Fremen while on a warpath of revenge against the conspirators who destroyed his family. Facing a choice between the love of his life and the fate of the known universe.</p>
+      <div class="hero-buttons">
+        <button class="btn-primary" onclick="downloadMovie(0, event)">
+          <i class="fa fa-download"></i> DOWNLOAD
+        </button>
+        <button class="btn-secondary" onclick="openDetail(0, event)">
+          <i class="fa fa-info-circle"></i> MORE INFO
+        </button>
+      </div>
+    </div>
+    <div class="hero-top-10">
+      <div class="top10-badge">#1</div>
+      <div class="top10-text">TODAY</div>
+    </div>
+  </div>
+
+  <!-- LIVE TICKER -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="ticker">
+      <span class="ticker-item"><span class="dot">●</span> <strong>Dune: Part Two</strong> · Now Available</span>
+      <span class="ticker-item"><span class="dot">●</span> <strong>Ironheart</strong> · Jun 24 · Marvel</span>
+      <span class="ticker-item"><span class="dot">●</span> <strong>Oppenheimer</strong> · Remastered 4K</span>
+      <span class="ticker-item"><span class="dot">●</span> <strong>Inception</strong> · Director's Cut</span>
+      <span class="ticker-item"><span class="dot">●</span> <strong>The Matrix</strong> · Now Available</span>
+      <span class="ticker-item"><span class="dot">●</span> <strong>Dune: Part Two</strong> · Now Available</span>
+      <span class="ticker-item"><span class="dot">●</span> <strong>Ironheart</strong> · Jun 24 · Marvel</span>
+      <span class="ticker-item"><span class="dot">●</span> <strong>Oppenheimer</strong> · Remastered 4K</span>
+      <span class="ticker-item"><span class="dot">●</span> <strong>Inception</strong> · Director's Cut</span>
+      <span class="ticker-item"><span class="dot">●</span> <strong>The Matrix</strong> · Now Available</span>
+    </div>
+  </div>
+
+  <!-- GENRE PILLS -->
+  <div class="genre-strip">
+    <div class="genre-pill active">All</div>
+    <div class="genre-pill">Movies</div>
+    <div class="genre-pill">TV Series</div>
+    <div class="genre-pill">Anime</div>
+    <div class="genre-pill">Action</div>
+    <div class="genre-pill">Sci-Fi</div>
+    <div class="genre-pill">Drama</div>
+    <div class="genre-pill">Nollywood</div>
+    <div class="genre-pill">Hollywood</div>
+  </div>
+
+  <!-- TRENDING NOW — floating rectangular tags -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Trending Now</div>
+      <button class="see-all" onclick="showScreen('search')">See All</button>
+    </div>
+    <div class="trending-float-wrap" id="trending-float-wrap">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+  <!-- TOP 10 TODAY -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Top 10 Today</div>
+    </div>
+    <div class="cards-row" id="row-top10"></div>
+  </div>
+
+  <!-- TOP RATED -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Top Rated</div>
+      <button class="see-all" onclick="showScreen('search')">See All</button>
+    </div>
+    <div class="cards-row" id="row-toprated"></div>
+  </div>
+
+  <!-- ACTION HITS -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Action Hits</div>
+      <button class="see-all" onclick="showScreen('search')">See All</button>
+    </div>
+    <div class="cards-row" id="row-action"></div>
+  </div>
+
+  <!-- UPCOMING CALENDAR -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Upcoming Calendar</div>
+    </div>
+    <div class="cards-row" id="row-upcoming"></div>
+  </div>
+
+  <!-- NEW RELEASES -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">New Releases</div>
+      <button class="see-all" onclick="showScreen('search')">See All</button>
+    </div>
+    <div class="cards-row" id="row-new"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════ SEARCH SCREEN ═══════════════════════════════ -->
+<div class="screen" id="screen-search">
+  <div class="search-screen-content">
+    <div class="search-bar-wrap">
+      <i class="fa fa-search"></i>
+      <input type="text" class="search-input" id="search-input"
+        placeholder="Search movies, genres, actors..." oninput="liveSearch(this.value)">
+    </div>
+    <div class="search-categories">
+      <span class="cat-tag active" onclick="filterCat(this,'All')">All</span>
+      <span class="cat-tag" onclick="filterCat(this,'Action')">Action</span>
+      <span class="cat-tag" onclick="filterCat(this,'Sci-Fi')">Sci-Fi</span>
+      <span class="cat-tag" onclick="filterCat(this,'Drama')">Drama</span>
+      <span class="cat-tag" onclick="filterCat(this,'Thriller')">Thriller</span>
+      <span class="cat-tag" onclick="filterCat(this,'Horror')">Horror</span>
+      <span class="cat-tag" onclick="filterCat(this,'Comedy')">Comedy</span>
+    </div>
+    <div class="search-grid" id="search-grid"></div>
+    <div class="search-empty" id="search-empty" style="display:none">
+      <i class="fa fa-film"></i>
+      <p>No movies found</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DETAIL SCREEN ═══════════════════════════════ -->
+<div class="screen" id="screen-detail">
+  <div class="detail-hero">
+    <div class="detail-bg" id="detail-bg"></div>
+    <div class="detail-overlay"></div>
+    <div class="detail-back" onclick="goBack()"><i class="fa fa-arrow-left"></i></div>
+    <div class="detail-poster-wrap">
+      <img id="detail-poster" src="" alt="">
+    </div>
+  </div>
+  <div class="detail-content">
+    <h1 class="detail-title" id="detail-title"></h1>
+    <div class="detail-meta2">
+      <div class="detail-rating-big"><i class="fa fa-star"></i> <span id="detail-rating"></span></div>
+      <span class="detail-tag" id="detail-genre"></span>
+      <span class="detail-info-strip" id="detail-info"></span>
+    </div>
+  </div>
+  <div class="detail-desc-section">
+    <p class="detail-desc" id="detail-desc"></p>
+    <div class="detail-actions">
+      <button class="btn-primary" id="dl-btn" onclick="downloadCurrent()">
+        <i class="fa fa-download"></i> DOWNLOAD NOW
+      </button>
+      <button class="btn-secondary" onclick="showToast('Opening trailer…','fa-play')">
+        <i class="fa fa-play"></i> WATCH TRAILER
+      </button>
+    </div>
+  </div>
+  <div class="detail-credits">
+    <div class="credits-title">Cast</div>
+    <div class="cast-row" id="cast-row"></div>
+  </div>
+  <div class="section">
+    <div class="section-header"><div class="section-title">You May Also Like</div></div>
+    <div class="cards-row" id="related-row"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ DOWNLOADS SCREEN ═══════════════════════════════ -->
+<div class="screen" id="screen-downloads">
+  <div class="downloads-content">
+    <div class="downloads-header">
+      <div class="page-title">DOWNLOADS</div>
+      <div class="storage-badge"><i class="fa fa-hdd"></i> 2.0 GB Free</div>
+    </div>
+    <div class="dl-tabs">
+      <div class="dl-tab active">Movie Max</div>
+      <div class="dl-tab">Local Files <span style="color:var(--grey);margin-left:4px">67</span></div>
+      <div class="dl-tab">Received</div>
+    </div>
+    <div class="storage-bar-wrap">
+      <div class="storage-label"><span>Storage Used</span><span>3.5 GB of 10 GB</span></div>
+      <div class="storage-bar"><div class="storage-fill"></div></div>
+    </div>
+    <div class="dl-list" id="dl-list"></div>
+    <div class="find-sources-btn" onclick="showToast('Finding free sources…','fa-search')">
+      <i class="fa fa-globe" style="margin-right:8px"></i> FIND MORE FREE SOURCES
+    </div>
+    <!-- FOR YOU section at bottom of downloads -->
+    <div style="margin-top:28px">
+      <div class="section-header" style="padding:0">
+        <div class="section-title">For You</div>
+      </div>
+      <div class="cards-row" id="row-foryou" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ PROFILE SCREEN ═══════════════════════════════ -->
+<div class="screen" id="screen-profile">
+  <div class="profile-content">
+    <div class="profile-banner">
+      <div class="profile-banner-gfx"></div>
+    </div>
+    <div class="profile-hero">
+      <div class="profile-avatar-big" id="profile-avatar-big">
+        <span id="profile-avatar-letter">U</span>
+      </div>
+      <div class="profile-name" id="profile-name-display">USERNAME</div>
+      <div class="profile-id">ID: <span id="profile-id-display">00000000</span></div>
+      <div class="profile-sub" id="profile-email-display">member@email.com</div>
+      <div class="profile-plan" onclick="showToast('Premium plan active!','fa-crown')">
+        <i class="fa fa-crown"></i> PREMIUM PLAN
+      </div>
+    </div>
+
+    <!-- GET PREMIUM BANNER -->
+    <div class="profile-premium-banner" onclick="showToast('Premium upgrade coming soon!','fa-crown')">
+      <div class="premium-icon">👑</div>
+      <div class="premium-text">
+        <strong>Get Premium</strong>
+        <span>No ads · 720P quality · Multi-downloads</span>
+      </div>
+      <i class="fa fa-chevron-right premium-arrow"></i>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-dl">0</div>
+        <div class="stat-label">Downloads</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-watched">47</div>
+        <div class="stat-label">Watched</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">12</div>
+        <div class="stat-label">Watchlist</div>
+      </div>
+    </div>
+
+    <!-- WATCH HISTORY -->
+    <div style="margin-bottom:20px">
+      <div class="section-header" style="padding:0;margin-bottom:12px">
+        <div class="section-title" style="font-size:16px">Watch History</div>
+        <button class="see-all">See All</button>
+      </div>
+      <div class="watch-history-row" id="watch-history-row"></div>
+    </div>
+
+    <div class="profile-menu">
+      <div class="menu-item" onclick="openAccSettings()">
+        <div class="mi-icon mi-red"><i class="fa fa-user"></i></div>
+        <div>
+          <div class="mi-label">Account</div>
+          <div class="mi-sub">Edit your profile</div>
+        </div>
+        <i class="fa fa-chevron-right"></i>
+      </div>
+      <div class="menu-item" onclick="showToast('Subscription info coming soon','fa-crown')">
+        <div class="mi-icon mi-blue"><i class="fa fa-crown"></i></div>
+        <div>
+          <div class="mi-label">Subscription</div>
+          <div class="mi-sub">Premium · Renews Apr 15</div>
+        </div>
+        <i class="fa fa-chevron-right"></i>
+      </div>
+      <div class="menu-item" onclick="showScreen('downloads')">
+        <div class="mi-icon mi-red"><i class="fa fa-download"></i></div>
+        <div>
+          <div class="mi-label">My Downloads</div>
+          <div class="mi-sub" id="prof-dl-count">0 movies</div>
+        </div>
+        <i class="fa fa-chevron-right"></i>
+      </div>
+      <div class="menu-item" onclick="showToast('2 new messages!','fa-bell')">
+        <div class="mi-icon mi-grey"><i class="fa fa-bell"></i></div>
+        <div>
+          <div class="mi-label">Messages</div>
+          <div class="mi-sub">Manage alerts</div>
+        </div>
+        <span class="mi-badge">2</span>
+        <i class="fa fa-chevron-right" style="margin-left:8px"></i>
+      </div>
+      <div class="menu-item" onclick="showToast('Community feature coming soon','fa-users')">
+        <div class="mi-icon mi-grey"><i class="fa fa-users"></i></div>
+        <div>
+          <div class="mi-label">Community</div>
+          <div class="mi-sub">Posts & comments</div>
+        </div>
+        <i class="fa fa-chevron-right"></i>
+      </div>
+      <div class="menu-item" onclick="showToast('Video quality settings coming soon','fa-sliders')">
+        <div class="mi-icon mi-grey"><i class="fa fa-sliders-h"></i></div>
+        <div>
+          <div class="mi-label">Playback Quality</div>
+          <div class="mi-sub">Auto (up to 4K)</div>
+        </div>
+        <i class="fa fa-chevron-right"></i>
+      </div>
+      <div class="menu-item" onclick="showToast('New version available!','fa-info')">
+        <div class="mi-icon mi-blue"><i class="fa fa-info-circle"></i></div>
+        <div>
+          <div class="mi-label">About Movie Max</div>
+          <div class="mi-sub">v2.0.0 · Trident Technologies</div>
+        </div>
+        <span class="mi-badge" style="background:var(--blue)">NEW</span>
+        <i class="fa fa-chevron-right" style="margin-left:8px"></i>
+      </div>
+      <div class="menu-item" onclick="handleLogout()">
+        <div class="mi-icon" style="background:rgba(255,46,99,0.1);color:var(--red)"><i class="fa fa-sign-out-alt"></i></div>
+        <div>
+          <div class="mi-label" style="color:var(--red)">Log Out</div>
+          <div class="mi-sub">Sign out of Movie Max</div>
+        </div>
+        <i class="fa fa-chevron-right"></i>
+      </div>
+    </div>
+    <div class="branding-footer">
+      Powered by <span>Trident Technologies</span> · © 2025 Movie Max. All rights reserved.
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SETTINGS OVERLAY ═══ -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettings()"></div>
+
+<!-- ═══ APP SETTINGS PANEL (slides from right) ═══ -->
+<div class="settings-panel" id="settings-panel">
+  <div class="settings-head">
+    <div class="settings-head-icon"><i class="fa fa-cog"></i></div>
+    <div>
+      <div class="settings-head-title">App Settings</div>
+      <div class="settings-head-sub">MOVIE MAX · TRIDENT TECH</div>
+    </div>
+    <button class="settings-close" onclick="closeSettings()"><i class="fa fa-times"></i></button>
+  </div>
+  <div class="settings-body">
+    <!-- Theme -->
+    <div class="settings-section-label">Appearance</div>
+    <div style="padding:0 0 4px">
+      <div class="theme-toggle-row">
+        <div class="theme-opt active" id="theme-dark" onclick="setTheme('dark')"><i class="fa fa-moon"></i> Dark</div>
+        <div class="theme-opt" id="theme-light" onclick="setTheme('light')"><i class="fa fa-sun"></i> Light</div>
+      </div>
+    </div>
+
+    <div class="settings-item" onclick="toggleSetting(this,'autoplay')">
+      <div class="settings-item-icon si-red"><i class="fa fa-play-circle"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Autoplay Trailers</div>
+        <div class="settings-item-sub">Play trailers automatically on hover</div>
+      </div>
+      <div class="settings-item-right"><div class="toggle-switch on" id="toggle-autoplay"></div></div>
+    </div>
+
+    <div class="settings-item" onclick="toggleSetting(this,'notifications')">
+      <div class="settings-item-icon si-blue"><i class="fa fa-bell"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Push Notifications</div>
+        <div class="settings-item-sub">New releases and recommendations</div>
+      </div>
+      <div class="settings-item-right"><div class="toggle-switch on" id="toggle-notifications"></div></div>
+    </div>
+
+    <div class="settings-item" onclick="toggleSetting(this,'downloads-wifi')">
+      <div class="settings-item-icon si-grey"><i class="fa fa-wifi"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Download on Wi-Fi Only</div>
+        <div class="settings-item-sub">Avoid mobile data charges</div>
+      </div>
+      <div class="settings-item-right"><div class="toggle-switch on" id="toggle-downloads-wifi"></div></div>
+    </div>
+
+    <div class="settings-section-label">Playback</div>
+
+    <div class="settings-item" onclick="cycleQuality()">
+      <div class="settings-item-icon si-gold"><i class="fa fa-film"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Video Quality</div>
+        <div class="settings-item-sub">Stream resolution setting</div>
+      </div>
+      <div class="settings-item-right"><span class="settings-value" id="quality-val">Auto (4K)</span></div>
+    </div>
+
+    <div class="settings-item" onclick="toggleSetting(this,'subtitles')">
+      <div class="settings-item-icon si-blue"><i class="fa fa-closed-captioning"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Subtitles</div>
+        <div class="settings-item-sub">Show subtitles by default</div>
+      </div>
+      <div class="settings-item-right"><div class="toggle-switch" id="toggle-subtitles"></div></div>
+    </div>
+
+    <div class="settings-item" onclick="toggleSetting(this,'audio-desc')">
+      <div class="settings-item-icon si-grey"><i class="fa fa-headphones"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Audio Descriptions</div>
+        <div class="settings-item-sub">Accessibility audio narration</div>
+      </div>
+      <div class="settings-item-right"><div class="toggle-switch" id="toggle-audio-desc"></div></div>
+    </div>
+
+    <div class="settings-section-label">Privacy & Data</div>
+
+    <div class="settings-item" onclick="toggleSetting(this,'personalized')">
+      <div class="settings-item-icon si-red"><i class="fa fa-chart-bar"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Personalized Recommendations</div>
+        <div class="settings-item-sub">Based on your watch history</div>
+      </div>
+      <div class="settings-item-right"><div class="toggle-switch on" id="toggle-personalized"></div></div>
+    </div>
+
+    <div class="settings-item" onclick="showToast('Cache cleared!','fa-trash')">
+      <div class="settings-item-icon si-grey"><i class="fa fa-database"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Clear Cache</div>
+        <div class="settings-item-sub">Frees up device storage</div>
+      </div>
+      <div class="settings-item-right"><span class="settings-value">128 MB</span></div>
+    </div>
+
+    <div class="settings-section-label">About</div>
+
+    <div class="settings-item">
+      <div class="settings-item-icon si-blue"><i class="fa fa-info-circle"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">App Version</div>
+        <div class="settings-item-sub">Trident Technologies</div>
+      </div>
+      <div class="settings-item-right"><span class="settings-value">v2.0.0</span></div>
+    </div>
+
+    <div class="settings-item" onclick="showToast('Terms of Service opened','fa-file-alt')">
+      <div class="settings-item-icon si-grey"><i class="fa fa-file-alt"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Terms of Service</div>
+        <div class="settings-item-sub">Legal information</div>
+      </div>
+      <div class="settings-item-right"><i class="fa fa-chevron-right" style="color:var(--grey);font-size:12px"></i></div>
+    </div>
+
+    <div class="settings-item" onclick="showToast('Privacy policy opened','fa-shield-alt')">
+      <div class="settings-item-icon si-grey"><i class="fa fa-shield-alt"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Privacy Policy</div>
+        <div class="settings-item-sub">How we use your data</div>
+      </div>
+      <div class="settings-item-right"><i class="fa fa-chevron-right" style="color:var(--grey);font-size:12px"></i></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ACCOUNT SETTINGS PANEL (slides from left) ═══ -->
+<div class="accsettings-panel" id="accsettings-panel">
+  <div class="settings-head">
+    <button class="settings-close" onclick="closeAccSettings()" style="margin-left:0;margin-right:auto"><i class="fa fa-times"></i></button>
+    <div style="flex:1">
+      <div class="settings-head-title">Account</div>
+      <div class="settings-head-sub">PROFILE & SECURITY</div>
+    </div>
+    <div class="settings-head-icon" style="background:var(--blue-dim);border-color:rgba(8,217,214,0.3);color:var(--blue)"><i class="fa fa-user"></i></div>
+  </div>
+  <div class="settings-body">
+    <div class="settings-section-label">Profile</div>
+
+    <div class="settings-item" onclick="showToast('Edit profile coming soon','fa-user-edit')">
+      <div class="settings-item-icon si-blue"><i class="fa fa-user-edit"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Edit Display Name</div>
+        <div class="settings-item-sub" id="acc-name-display">USERNAME</div>
+      </div>
+      <div class="settings-item-right"><i class="fa fa-chevron-right" style="color:var(--grey);font-size:12px"></i></div>
+    </div>
+
+    <div class="settings-item" onclick="showToast('Change avatar coming soon','fa-camera')">
+      <div class="settings-item-icon si-red"><i class="fa fa-camera"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Change Avatar</div>
+        <div class="settings-item-sub">Update profile picture</div>
+      </div>
+      <div class="settings-item-right"><i class="fa fa-chevron-right" style="color:var(--grey);font-size:12px"></i></div>
+    </div>
+
+    <div class="settings-section-label">Security</div>
+
+    <div class="settings-item" onclick="showToast('Email change link sent','fa-envelope')">
+      <div class="settings-item-icon si-blue"><i class="fa fa-envelope"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Email Address</div>
+        <div class="settings-item-sub" id="acc-email-display">member@email.com</div>
+      </div>
+      <div class="settings-item-right"><i class="fa fa-chevron-right" style="color:var(--grey);font-size:12px"></i></div>
+    </div>
+
+    <div class="settings-item" onclick="showToast('Password reset link sent!','fa-lock')">
+      <div class="settings-item-icon si-grey"><i class="fa fa-lock"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Change Password</div>
+        <div class="settings-item-sub">Update your login password</div>
+      </div>
+      <div class="settings-item-right"><i class="fa fa-chevron-right" style="color:var(--grey);font-size:12px"></i></div>
+    </div>
+
+    <div class="settings-item" onclick="toggleSetting(this,'2fa')">
+      <div class="settings-item-icon si-green"><i class="fa fa-shield-alt"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Two-Factor Auth</div>
+        <div class="settings-item-sub">Extra security for your account</div>
+      </div>
+      <div class="settings-item-right"><div class="toggle-switch" id="toggle-2fa"></div></div>
+    </div>
+
+    <div class="settings-section-label">Subscription</div>
+
+    <div class="settings-item" onclick="showToast('Premium plan active!','fa-crown')">
+      <div class="settings-item-icon si-gold"><i class="fa fa-crown"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Premium Plan</div>
+        <div class="settings-item-sub">Renews Apr 15 · No ads</div>
+      </div>
+      <div class="settings-item-right"><span class="settings-value">Active</span></div>
+    </div>
+
+    <div class="settings-item" onclick="showToast('Billing history coming soon','fa-receipt')">
+      <div class="settings-item-icon si-grey"><i class="fa fa-receipt"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Billing & Payments</div>
+        <div class="settings-item-sub">Manage payment methods</div>
+      </div>
+      <div class="settings-item-right"><i class="fa fa-chevron-right" style="color:var(--grey);font-size:12px"></i></div>
+    </div>
+
+    <div class="settings-section-label">Danger Zone</div>
+
+    <div class="settings-item" onclick="showToast('All devices signed out','fa-sign-out-alt')">
+      <div class="settings-item-icon si-grey"><i class="fa fa-sign-out-alt"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label">Sign Out All Devices</div>
+        <div class="settings-item-sub">Log out everywhere</div>
+      </div>
+      <div class="settings-item-right"><i class="fa fa-chevron-right" style="color:var(--grey);font-size:12px"></i></div>
+    </div>
+
+    <div class="settings-item" onclick="showToast('Account deletion requested. Team will contact you.','fa-exclamation-triangle')">
+      <div class="settings-item-icon" style="background:rgba(255,46,99,0.1);color:var(--red)"><i class="fa fa-user-times"></i></div>
+      <div class="settings-item-text">
+        <div class="settings-item-label" style="color:var(--red)">Delete Account</div>
+        <div class="settings-item-sub">This action is irreversible</div>
+      </div>
+      <div class="settings-item-right"><i class="fa fa-chevron-right" style="color:var(--red);font-size:12px"></i></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ BOTTOM NAV ═══════════════════════════════ -->
+<nav class="bottom-nav" id="bottomnav" style="display:none">
+  <div class="nav-item active" id="nav-home" onclick="showScreen('home')">
+    <i class="fa fa-home"></i>
+    <span>Home</span>
+  </div>
+  <div class="nav-item" id="nav-search" onclick="showScreen('search')">
+    <i class="fa fa-search"></i>
+    <span>Search</span>
+  </div>
+  <div class="nav-item" id="nav-downloads" onclick="showScreen('downloads')">
+    <i class="fa fa-download"></i>
+    <span>Downloads</span>
+  </div>
+  <div class="nav-item" id="nav-profile" onclick="showScreen('profile')">
+    <i class="fa fa-user"></i>
+    <span>Me</span>
+  </div>
+</nav>
+
+<script>
+// ─── DATA ───
+const MOVIES = [
+  { id:0, title:"Dune: Part Two", year:2024, rating:8.5, duration:"2h 46m", genre:"Sci-Fi",
+    desc:"Paul Atreides unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family. Facing a choice between the love of his life and the fate of the known universe.",
+    poster:"https://m.media-amazon.com/images/M/MV5BODI0YjNhNjUtYjM0My00MTUwLWFlYTMtMWI2NGUzYjNjNGIyXkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_SX300.jpg",
+    bg:"https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_.jpg",
+    cast:["T.C","Z.S","R.C","J.M","A.J"], archiveId:null, size:"4.2 GB" },
+  { id:1, title:"Oppenheimer", year:2023, rating:8.9, duration:"3h 0m", genre:"Drama",
+    desc:"The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb during World War II.",
+    poster:"https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_SX300.jpg",
+    bg:"https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_.jpg",
+    cast:["C.M","E.B","M.R","R.D","F.M"], archiveId:null, size:"5.1 GB" },
+  { id:2, title:"John Wick 4", year:2023, rating:7.7, duration:"2h 49m", genre:"Action",
+    desc:"John Wick uncovers a path to defeating the High Table. But before he can earn his freedom, Wick must face off against a new enemy with powerful alliances across the globe.",
+    poster:"https://m.media-amazon.com/images/M/MV5BMDExZGMyOTMtMDgyYi00NGIwLWJhMTEtOTdkZGFjNzQ1MTEyXkEyXkFqcGdeQXVyMjM4NTM5NDY@._V1_SX300.jpg",
+    bg:"", cast:["K.R","D.P","B.N","I.M","C.C"], archiveId:null, size:"3.8 GB" },
+  { id:3, title:"Guardians Vol. 3", year:2023, rating:7.9, duration:"2h 30m", genre:"Action",
+    desc:"Still reeling from the loss of Gamora, Peter Quill rallies his team to defend the universe and one of their own.",
+    poster:"https://m.media-amazon.com/images/M/MV5BMDllNTIyNjUtZTMwYi00NGMwLWJlNDQtZTdlNWUwNzg1ZjliXkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_SX300.jpg",
+    bg:"", cast:["C.P","Z.S","D.B","B.D","P.S"], archiveId:null, size:"3.5 GB" },
+  { id:4, title:"The Dark Knight", year:2008, rating:9.0, duration:"2h 32m", genre:"Action",
+    desc:"When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests.",
+    poster:"https://m.media-amazon.com/images/M/MV5BMTMxNTMwODM0NF5BMl5BanBnXkFtZTcwODAyMTk2Mw@@._V1_SX300.jpg",
+    bg:"", cast:["C.B","H.L","A.E","M.G","G.O"], archiveId:"the-dark-knight-2008", size:"2.8 GB" },
+  { id:5, title:"Inception", year:2010, rating:8.8, duration:"2h 28m", genre:"Sci-Fi",
+    desc:"A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+    poster:"https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg",
+    bg:"", cast:["L.D","J.G","E.P","T.H","C.C"], archiveId:"inception-2010", size:"2.5 GB" },
+  { id:6, title:"Interstellar", year:2014, rating:8.7, duration:"2h 49m", genre:"Sci-Fi",
+    desc:"A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+    poster:"https://m.media-amazon.com/images/M/MV5BZjdkOTU3MDktN2IxOS00OGEyLWFmMjktY2FiMmZkNWIyODZiXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_SX300.jpg",
+    bg:"", cast:["M.M","A.H","J.C","M.C","W.B"], archiveId:"Interstellar_2014", size:"3.9 GB" },
+  { id:7, title:"Mad Max: Fury Road", year:2015, rating:8.1, duration:"2h 0m", genre:"Action",
+    desc:"In a post-apocalyptic wasteland, a woman rebels against a tyrannical ruler in search for her homeland.",
+    poster:"https://m.media-amazon.com/images/M/MV5BN2EwM2I5OWMtMGQyMi00Zjg1LWJkNTctZTdjYTA4OGUwZjMyXkEyXkFqcGdeQXVyMTMxODk2OTU@._V1_SX300.jpg",
+    bg:"", cast:["T.H","C.T","N.H","H.K","Z.E"], archiveId:null, size:"2.2 GB" },
+  { id:8, title:"The Matrix", year:1999, rating:8.7, duration:"2h 16m", genre:"Sci-Fi",
+    desc:"A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.",
+    poster:"https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVlLTM5YTUtZWU2OGYxNGViZXVhXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg",
+    bg:"", cast:["K.R","L.F","C.W","H.W","J.P"], archiveId:"TheMatrix", size:"1.9 GB" },
+  { id:9, title:"Everything Everywhere", year:2022, rating:7.8, duration:"2h 19m", genre:"Sci-Fi",
+    desc:"A middle-aged Chinese immigrant is swept up in an insane adventure in which she alone can save existence.",
+    poster:"https://m.media-amazon.com/images/M/MV5BYTdiOTIyZTQtNmQ1OS00NjZlLWIyMTgtYzk5Y2M3ZDVmMDk1XkEyXkFqcGdeQXVyMTAyMjQ3NzQ1._V1_SX300.jpg",
+    bg:"", cast:["M.K","S.H","K.H","J.C","S.Q"], archiveId:null, size:"2.1 GB" },
+  { id:10, title:"Top Gun: Maverick", year:2022, rating:8.2, duration:"2h 10m", genre:"Action",
+    desc:"After thirty years, Maverick is still pushing the envelope as a top naval aviator, but must confront ghosts of his past when he leads TOP GUN's elite graduates on a specialized mission.",
+    poster:"https://m.media-amazon.com/images/M/MV5BOWZlMjhhZTYtOTEzNS00ZTQ1LWIyMmEtZWFmZTdlNmQ5OWU3XkEyXkFqcGdeQXVyMjkwOTAyMDU@._V1_SX300.jpg",
+    bg:"", cast:["T.C","M.T","J.H","G.E","V.K"], archiveId:null, size:"3.1 GB" },
+  { id:11, title:"Parasite", year:2019, rating:8.5, duration:"2h 12m", genre:"Thriller",
+    desc:"Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.",
+    poster:"https://m.media-amazon.com/images/M/MV5BYWZjMjk3ZTItODQ2ZC00NTY5LWE0ZDYtZTI3MjcwN2Q5NTVkXkEyXkFqcGdeQXVyODk4OTc3MTY@._V1_SX300.jpg",
+    bg:"", cast:["S.I","L.S","C.W","P.S","J.H"], archiveId:null, size:"1.8 GB" }
+];
+
+const UPCOMING = [
+  { title:"Beef", date:"Apr 16", booked:"6,153", poster:"https://m.media-amazon.com/images/M/MV5BMjg1MTI5NjI5NV5BMl5BanBnXkFtZTgwMzMwODE3MDI@._V1_SX300.jpg" },
+  { title:"Roommates", date:"Apr 16", booked:"16,434", poster:"https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVlLTM5YTUtZWU2OGYxNGViZXVhXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg" },
+  { title:"Absolute Valor", date:"Apr 17", booked:"5,463", poster:"https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_SX300.jpg" },
+  { title:"180", date:"Apr 17", booked:"10,848", poster:"https://m.media-amazon.com/images/M/MV5BMDllNTIyNjUtZTMwYi00NGMwLWJlNDQtZTdlNWUwNzg1ZjliXkEyXkFqcGdeQXVyMTkxNjUyNQ@@._V1_SX300.jpg" },
+  { title:"Ironheart", date:"Jun 24", booked:"32,100", poster:"https://m.media-amazon.com/images/M/MV5BMDBmYTZjNjUtN2M1MS00MTQ2LTk2ODgtNzc2M2QyZGE5NTVjXkEyXkFqcGdeQXVyNzAwMjU2MTY@._V1_SX300.jpg" },
+];
+
+// ─── STATE ───
+let downloads = [];
+let currentDetailId = 0;
+let prevScreen = 'home';
+let currentFilter = 'All';
+let currentUser = null;
+
+// ─── SIGNUP EFFECTS ───
+window.onload = () => {
+  buildFilmstrip();
+  buildParticles();
+};
+
+function buildFilmstrip() {
+  const fs = document.getElementById('filmstrip');
+  for (let i = 0; i < 8; i++) {
+    const col = document.createElement('div');
+    col.className = 'filmstrip-col';
+    for (let j = 0; j < 12; j++) {
+      const frame = document.createElement('div');
+      frame.className = 'filmstrip-frame';
+      col.appendChild(frame);
+    }
+    fs.appendChild(col);
+  }
+}
+
+function buildParticles() {
+  const container = document.getElementById('signup-particles');
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'signup-particle';
+    p.style.cssText = `
+      left:${Math.random()*100}%;
+      bottom:-10px;
+      width:${Math.random()*3+1}px;
+      height:${Math.random()*3+1}px;
+      background:${Math.random()>0.5?'var(--red)':'var(--blue)'};
+      animation-duration:${8+Math.random()*12}s;
+      animation-delay:${Math.random()*8}s;
+      opacity:${0.3+Math.random()*0.6};
+    `;
+    container.appendChild(p);
+  }
+}
+
+// ─── AUTH ───
+function switchAuthTab(tab) {
+  document.querySelectorAll('.signup-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('form-signup').style.display = tab === 'signup' ? 'flex' : 'none';
+  document.getElementById('form-login').style.display = tab === 'login' ? 'flex' : 'none';
+}
+
+function handleSignup() {
+  const name = document.getElementById('su-name').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const pass = document.getElementById('su-pass').value;
+  const pass2 = document.getElementById('su-pass2').value;
+  if (!name) { showToast('Please enter your name','fa-exclamation-circle'); return; }
+  if (!email || !email.includes('@')) { showToast('Enter a valid email','fa-exclamation-circle'); return; }
+  if (pass.length < 6) { showToast('Password must be 6+ characters','fa-lock'); return; }
+  if (pass !== pass2) { showToast('Passwords do not match','fa-exclamation-circle'); return; }
+  loginUser(name, email);
+}
+
+function handleLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass = document.getElementById('li-pass').value;
+  if (!email || !email.includes('@')) { showToast('Enter a valid email','fa-exclamation-circle'); return; }
+  if (!pass) { showToast('Enter your password','fa-lock'); return; }
+  loginUser(email.split('@')[0], email);
+}
+
+function socialAuth(provider) {
+  loginUser(provider + ' User', provider.toLowerCase()+'@auth.com');
+}
+
+function loginUser(name, email) {
+  currentUser = { name, email };
+  const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('avatar-initials').textContent = initials;
+  document.getElementById('profile-name-display').textContent = name;
+  document.getElementById('profile-email-display').textContent = email;
+  document.getElementById('profile-id-display').textContent = Math.floor(10000000+Math.random()*90000000);
+  document.getElementById('profile-avatar-letter').textContent = initials;
+
+  // Show main UI
+  document.getElementById('topnav').style.display = 'flex';
+  document.getElementById('bottomnav').style.display = 'flex';
+  document.getElementById('screen-signup').style.display = 'none';
+  showScreen('home');
+  buildRows();
+  buildSearchGrid(MOVIES);
+  buildWatchHistory();
+  const heroPosterEl = document.getElementById('hero-poster');
+  heroPosterEl.style.backgroundImage = `url('${MOVIES[0].poster}')`;
+  showToast(`Welcome, ${name.split(' ')[0]}! 🎬`, 'fa-film');
+}
+
+function handleLogout() {
+  currentUser = null;
+  downloads = [];
+  document.getElementById('topnav').style.display = 'none';
+  document.getElementById('bottomnav').style.display = 'none';
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-signup').style.display = 'flex';
+  document.getElementById('screen-signup').classList.add('active');
+  showToast('Logged out successfully','fa-sign-out-alt');
+}
+
+// ─── ROWS ───
+function buildRows() {
+  const trending = [0, 2, 3, 10, 7];
+  const topRated = [4, 5, 6, 8, 11, 9];
+  const action = [2, 3, 4, 7, 10];
+  const newRel = [0, 1, 9, 10];
+  const top10 = [4, 5, 0, 6, 8, 2, 11, 1, 9, 7];
+
+  buildTrendingFloat();
+  renderTop10Cards('row-top10', top10.map(i => MOVIES[i]));
+  renderCards('row-toprated', topRated.map(i => MOVIES[i]));
+  renderCards('row-action', action.map(i => MOVIES[i]));
+  renderWideCards('row-new', newRel.map(i => MOVIES[i]));
+  renderUpcomingCards('row-upcoming');
+  renderCards('row-foryou', [0,5,4,8,11].map(i=>MOVIES[i]));
+}
+
+function renderCards(rowId, movies) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  row.innerHTML = '';
+  movies.forEach((m, idx) => {
+    const card = document.createElement('div');
+    card.className = 'movie-card';
+    card.style.animationDelay = `${idx * 0.06}s`;
+    card.onclick = () => openDetail(m.id);
+    card.innerHTML = `
+      <img class="movie-card-img" src="${m.poster}" alt="${m.title}"
+           onerror="this.src='https://via.placeholder.com/160x240/1A1A1A/FF2E63?text=${encodeURIComponent(m.title)}'">
+      <div class="rating-badge"><i class="fa fa-star"></i> ${m.rating}</div>
+      <div class="movie-card-overlay">
+        <div class="card-play"><i class="fa fa-play"></i></div>
+        <div class="card-title-hover">${m.title}</div>
+      </div>
+      <div class="card-info">
+        <div class="card-name">${m.title}</div>
+        <div class="card-year">${m.year} · ${m.genre}</div>
+      </div>
+    `;
+    row.appendChild(card);
+  });
+}
+
+function renderTop10Cards(rowId, movies) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  row.innerHTML = '';
+  movies.slice(0,10).forEach((m, idx) => {
+    const card = document.createElement('div');
+    card.className = 'top10-card';
+    card.onclick = () => openDetail(m.id);
+    card.innerHTML = `
+      <img src="${m.poster}" alt="${m.title}" onerror="this.src='https://via.placeholder.com/130x195/1A1A1A/FF2E63?text=${encodeURIComponent(m.title)}'">
+
+      <div class="top10-card-info">
+        <div class="top10-card-name">${m.title}</div>
+      </div>
+    `;
+    row.appendChild(card);
+  });
+}
+
+function renderUpcomingCards(rowId) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  row.innerHTML = '';
+  UPCOMING.forEach((u, idx) => {
+    const card = document.createElement('div');
+    card.className = 'upcoming-card';
+    card.onclick = () => showToast(`${u.title} coming ${u.date}!`, 'fa-calendar');
+    card.innerHTML = `
+      <img class="upcoming-card-img" src="${u.poster}" alt="${u.title}"
+           onerror="this.src='https://via.placeholder.com/160x100/1A1A1A/08D9D6?text=${encodeURIComponent(u.title)}'">
+      <div class="upcoming-date-badge">${u.date}</div>
+      <div class="upcoming-booked"></div>
+      <div class="upcoming-card-info">
+        <div class="upcoming-card-title">${u.title}</div>
+        <div class="upcoming-card-booked">🔴 ${u.booked} booked</div>
+      </div>
+    `;
+    row.appendChild(card);
+  });
+}
+
+function renderWideCards(rowId, movies) {
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  row.innerHTML = '';
+  movies.forEach((m, idx) => {
+    const card = document.createElement('div');
+    card.className = 'wide-card';
+    card.style.animationDelay = `${idx * 0.08}s`;
+    card.onclick = () => openDetail(m.id);
+    const isNew = (2024 - m.year) <= 1;
+    card.innerHTML = `
+      <img class="wide-card-img" src="${m.poster}" alt="${m.title}"
+           onerror="this.src='https://via.placeholder.com/280x160/1A1A1A/08D9D6?text=${encodeURIComponent(m.title)}'">
+      <div class="wide-card-content">
+        <div class="wide-card-title">${m.title}</div>
+        <div class="wide-card-sub">${m.year} · ${m.duration} · <span style="color:#FFD700">★ ${m.rating}</span></div>
+        <span class="wide-card-badge ${isNew ? 'badge-red' : 'badge-blue'}">${isNew ? '🔥 NEW' : m.genre.toUpperCase()}</span>
+      </div>
+    `;
+    row.appendChild(card);
+  });
+}
+
+function buildWatchHistory() {
+  const row = document.getElementById('watch-history-row');
+  if (!row) return;
+  const history = [1, 9, 0, 10];
+  const progresses = [70, 45, 100, 22];
+  row.innerHTML = '';
+  history.forEach((id, i) => {
+    const m = MOVIES[id];
+    const div = document.createElement('div');
+    div.className = 'history-thumb';
+    div.onclick = () => openDetail(m.id);
+    div.innerHTML = `
+      <img src="${m.poster}" alt="${m.title}" onerror="this.src='https://via.placeholder.com/80x56/1A1A1A/FF2E63?text=${encodeURIComponent(m.title[0])}'">
+      <div class="history-bar"><div class="history-bar-fill" style="width:${progresses[i]}%"></div></div>
+      <div class="history-thumb-name">${m.title}</div>
+    `;
+    row.appendChild(div);
+  });
+}
+
+// ─── SEARCH ───
+function buildSearchGrid(movies) {
+  const grid = document.getElementById('search-grid');
+  const empty = document.getElementById('search-empty');
+  grid.innerHTML = '';
+  if (!movies.length) {
+    grid.style.display = 'none'; empty.style.display = 'block'; return;
+  }
+  grid.style.display = 'grid'; empty.style.display = 'none';
+  movies.forEach((m, i) => {
+    const card = document.createElement('div');
+    card.className = 'search-card';
+    card.style.animationDelay = `${i * 0.04}s`;
+    card.onclick = () => openDetail(m.id);
+    card.innerHTML = `
+      <img src="${m.poster}" alt="${m.title}"
+           onerror="this.src='https://via.placeholder.com/120x180/1A1A1A/FF2E63?text=${encodeURIComponent(m.title.split(' ')[0])}'">
+      <div class="search-card-info">
+        <div class="search-card-name">${m.title}</div>
+        <div class="search-rating">★ ${m.rating}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function liveSearch(val) {
+  let filtered = MOVIES.filter(m =>
+    m.title.toLowerCase().includes(val.toLowerCase()) ||
+    m.genre.toLowerCase().includes(val.toLowerCase())
+  );
+  if (currentFilter !== 'All') filtered = filtered.filter(m => m.genre === currentFilter);
+  buildSearchGrid(filtered);
+}
+
+function filterCat(el, cat) {
+  document.querySelectorAll('.cat-tag').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentFilter = cat;
+  const val = document.getElementById('search-input').value;
+  liveSearch(val);
+}
+
+// ─── DETAIL ───
+function openDetail(id, e) {
+  if (e) e.stopPropagation();
+  currentDetailId = id;
+  const m = MOVIES[id];
+  document.getElementById('detail-bg').style.backgroundImage = `url('${m.bg || m.poster}')`;
+  document.getElementById('detail-poster').src = m.poster;
+  document.getElementById('detail-poster').onerror = function() {
+    this.src = `https://via.placeholder.com/120x180/1A1A1A/FF2E63?text=${encodeURIComponent(m.title)}`;
+  };
+  document.getElementById('detail-title').textContent = m.title;
+  document.getElementById('detail-rating').textContent = m.rating;
+  document.getElementById('detail-genre').textContent = m.genre;
+  document.getElementById('detail-info').textContent = `${m.year} · ${m.duration}`;
+  document.getElementById('detail-desc').textContent = m.desc;
+  const castRow = document.getElementById('cast-row');
+  castRow.innerHTML = '';
+  m.cast.forEach(c => {
+    castRow.innerHTML += `
+      <div class="cast-item">
+        <div class="cast-avatar">${c}</div>
+        <div class="cast-name">${c}</div>
+      </div>
+    `;
+  });
+  const related = MOVIES.filter(mv => mv.id !== id && mv.genre === m.genre).slice(0, 5);
+  renderCards('related-row', related.length ? related : MOVIES.slice(0,4));
+  prevScreen = document.querySelector('.screen.active')?.id.replace('screen-','') || 'home';
+  showScreen('detail');
+}
+
+function goBack() { showScreen(prevScreen); }
+function downloadCurrent() { downloadMovie(currentDetailId); }
+
+// ─── DOWNLOADS ───
+function downloadMovie(id, e) {
+  if (e) e.stopPropagation();
+  const m = MOVIES[id];
+  const exists = downloads.find(d => d.id === id);
+  if (exists) { showToast(`${m.title} already downloaded!`, 'fa-check'); return; }
+  downloads.push({ ...m, progress: 100 });
+  renderDownloads();
+  showToast(`${m.title} added to downloads!`, 'fa-download');
+  updateProfileStats();
+}
+
+function renderDownloads() {
+  const list = document.getElementById('dl-list');
+  if (!downloads.length) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:60px 20px;color:var(--grey)">
+        <i class="fa fa-download" style="font-size:40px;opacity:0.2;display:block;margin-bottom:16px"></i>
+        <p style="font-family:Rajdhani;font-size:16px;letter-spacing:1px">No downloads yet.<br>Find a movie and tap Download!</p>
+      </div>`;
+    return;
+  }
+  list.innerHTML = '';
+  const colors = ['var(--red)', 'var(--blue)', '#9b59b6', '#e67e22'];
+  downloads.forEach((m, i) => {
+    const archiveLink = m.archiveId ? `https://archive.org/download/${m.archiveId}` : '#';
+    list.innerHTML += `
+      <div class="dl-item" onclick="${m.archiveId ? `window.open('${archiveLink}','_blank')` : `showToast('Link not configured yet — add Archive.org ID','fa-link')`}">
+        <img class="dl-thumb" src="${m.poster}" alt="${m.title}"
+             onerror="this.src='https://via.placeholder.com/64x90/1A1A1A/FF2E63?text=${encodeURIComponent(m.title.split(' ')[0])}'">
+        <div class="dl-info">
+          <div class="dl-title">${m.title}</div>
+          <div class="dl-meta">${m.year} · ${m.genre} · ${m.duration}</div>
+          <div class="dl-progress">
+            <div class="dl-progress-fill" style="width:${m.progress}%;background:${colors[i%4]}"></div>
+          </div>
+        </div>
+        <div class="dl-actions">
+          <div class="dl-size">${m.size}</div>
+          <div class="dl-play"><i class="fa fa-play" style="font-size:12px;margin-left:2px"></i></div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function updateProfileStats() {
+  document.getElementById('stat-dl').textContent = downloads.length;
+  document.getElementById('prof-dl-count').textContent = `${downloads.length} movie${downloads.length !== 1 ? 's' : ''}`;
+}
+
+// ─── SCREENS ───
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const nav = document.getElementById('nav-' + name);
+  if (nav) nav.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name === 'downloads') renderDownloads();
+  if (name === 'search') {
+    buildSearchGrid(MOVIES);
+    document.getElementById('search-input').value = '';
+    currentFilter = 'All';
+    document.querySelectorAll('.cat-tag').forEach((t, i) => t.classList.toggle('active', i === 0));
+  }
+}
+
+// ─── SETTINGS PANEL ───
+function openSettings() {
+  document.getElementById('settings-panel').classList.add('open');
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-panel').classList.remove('open');
+  document.getElementById('accsettings-panel').classList.remove('open');
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+function openAccSettings() {
+  document.getElementById('accsettings-panel').classList.add('open');
+  document.getElementById('settings-overlay').classList.add('open');
+  // sync user info
+  if (currentUser) {
+    const el1 = document.getElementById('acc-name-display');
+    const el2 = document.getElementById('acc-email-display');
+    if (el1) el1.textContent = currentUser.name;
+    if (el2) el2.textContent = currentUser.email;
+  }
+}
+function closeAccSettings() {
+  document.getElementById('accsettings-panel').classList.remove('open');
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+
+function toggleSetting(row, key) {
+  const toggle = row.querySelector('.toggle-switch');
+  if (!toggle) return;
+  toggle.classList.toggle('on');
+  const isOn = toggle.classList.contains('on');
+  showToast(key.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) + (isOn ? ' enabled' : ' disabled'), isOn ? 'fa-check-circle' : 'fa-times-circle');
+}
+
+// Quality cycling
+const qualities = ['Auto (4K)', '1080p HD', '720p HD', '480p', '360p'];
+let qualityIdx = 0;
+function cycleQuality() {
+  qualityIdx = (qualityIdx + 1) % qualities.length;
+  const el = document.getElementById('quality-val');
+  if (el) el.textContent = qualities[qualityIdx];
+  showToast('Quality: ' + qualities[qualityIdx], 'fa-film');
+}
+
+// ─── THEME ───
+function setTheme(mode) {
+  document.getElementById('theme-dark').classList.toggle('active', mode === 'dark');
+  document.getElementById('theme-light').classList.toggle('active', mode === 'light');
+  document.body.classList.toggle('light-mode', mode === 'light');
+  showToast((mode === 'light' ? 'Light' : 'Dark') + ' mode activated', 'fa-' + (mode === 'light' ? 'sun' : 'moon'));
+}
+
+// ─── TRENDING FLOAT TAGS ───
+function buildTrendingFloat() {
+  const wrap = document.getElementById('trending-float-wrap');
+  if (!wrap) return;
+  const trendingIds = [0, 2, 3, 10, 7, 5, 1, 8];
+  const colorClasses = ['t-red','t-blue','t-gold','t-purple'];
+  const icons = ['fa-fire','fa-bolt','fa-star','fa-arrow-up','fa-film','fa-crown','fa-chart-line','fa-trophy'];
+  wrap.innerHTML = '';
+  trendingIds.forEach((id, i) => {
+    const m = MOVIES[id];
+    const tag = document.createElement('div');
+    tag.className = 'trending-tag ' + colorClasses[i % colorClasses.length];
+    tag.style.animationDelay = `${i * 0.4}s`;
+    tag.onclick = () => openDetail(m.id);
+    tag.innerHTML = `<i class="fa ${icons[i]}"></i> ${m.title}`;
+    wrap.appendChild(tag);
+  });
+}
+
+let toastTimer;
+function showToast(msg, icon = 'fa-check-circle') {
+  const t = document.getElementById('toast');
+  t.querySelector('i').className = `fa ${icon}`;
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
